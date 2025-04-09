@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3225706021 王聪</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        header {
+            background-color: #0079c1;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .header-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .map-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #arcgis-map {
+            flex: 1;
+            width: 100%;
+        }
+        
+        .basemap-gallery-container {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .basemap-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+        
+        .basemap-gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: #0079c1 #f0f0f0;
+        }
+        
+        .basemap-gallery::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .basemap-gallery::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+        
+        .basemap-gallery::-webkit-scrollbar-thumb {
+            background-color: #0079c1;
+            border-radius: 3px;
+        }
+        
+        .basemap-thumbnail {
+            width: 100px;
+            height: 75px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .basemap-thumbnail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .basemap-thumbnail.selected {
+            border-color: #0079c1;
+            box-shadow: 0 0 0 3px rgba(0,121,193,0.2);
+        }
+        
+        .basemap-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .basemap-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 3px;
+            font-size: 0.7em;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+    <script type="module" src="https://js.arcgis.com/calcite-components/3.0.3/calcite.esm.js"></script>
+    <!-- Load the ArcGIS API for JavaScript from CDN -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.32/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.32/"></script>
+    <!-- Load Map components from CDN -->
+    <script type="module" src="https://js.arcgis.com/map-components/4.32/arcgis-map-components.esm.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-title">我的地图</div>
+        <calcite-button appearance="transparent" icon-start="information">About</calcite-button>
+    </header>
+    
+    <div class="map-container">
+        <arcgis-map id="main-map" item-id="237b9584339446a0b56317b5962a4971">
+            <arcgis-search position="top-right"></arcgis-search>
+            <arcgis-zoom position="top-left"></arcgis-zoom>
+            <arcgis-scale-bar position="bottom-left"></arcgis-scale-bar>
+            <arcgis-legend position="bottom-right"></arcgis-legend>
+            <arcgis-layer-list position="top-right"></arcgis-layer-list>
+        </arcgis-map>
+        
+        <div class="basemap-gallery-container">
+            <div class="basemap-title">Basemaps</div>
+            <div class="basemap-gallery" id="basemap-gallery">
+                <!-- Basemap thumbnails will be added dynamically -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer"
+    ], function(Map, MapView, FeatureLayer) {
+        const arcgisMap = document.querySelector("arcgis-map");
+        arcgisMap.addEventListener("arcgisViewReadyChange", () => {
+            const view = arcgisMap.view;
+
+            // 定义新的中心点坐标和缩放级别
+            const newCenter = [104.509762,34.717203];
+            const newZoom = 3;
+
+            // 切换中心点
+            view.goTo({
+                center: newCenter,
+                zoom: newZoom
+            });
+        });
+    });
+</script>
+<script>
+    require([
+        "esri/layers/FeatureLayer",
+        "esri/Basemap",
+        "esri/layers/TileLayer"
+    ], (FeatureLayer, Basemap, TileLayer) => {
+        const arcgisMap = document.querySelector("arcgis-map");
+        
+        arcgisMap.addEventListener("arcgisViewReadyChange", () => {
+            // Add a feature layer
+            const trailheadsLayer = new FeatureLayer({
+                url: "https://www.geosceneonline.cn/server/rest/services/Hosted/dengzhixian/FeatureServer",
+                popupTemplate: {
+                    title: "Trailhead Information",
+                    content: [{
+                        type: "fields",
+                        fieldInfos: [
+                            { fieldName: "TRL_NAME", label: "Trail Name" },
+                            { fieldName: "PARK_NAME", label: "Park Name" },
+                            { fieldName: "ELEV_FT", label: "Elevation (ft)" }
+                        ]
+                    }]
+                }
+            });
+            
+            arcgisMap.map.add(trailheadsLayer);
+            
+            // Set up basemap gallery
+            const basemaps = [
+                {
+                    id: "streets",
+                    title: "Streets",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/3d7707c1a0ec4b9b9a454c3b164c6556/info/thumbnail/ago_downloaded.png",
+                    baseLayer: new TileLayer({
+                        url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"
+                    })
+                },
+                {
+                    id: "topo",
+                    title: "Topographic",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/7dc6cea0b1764a1f9af2e679f642f0f5/info/thumbnail/ago_downloaded.png",
+                    baseLayer: new TileLayer({
+                        url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+                    })
+                },
+                {
+                    id: "imagery",
+                    title: "Imagery",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/10df2279f9684e4a9f6a7f08febac2a9/info/thumbnail/ago_downloaded.png",
+                    baseLayer: new TileLayer({
+                        url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+                    })
+                },
+                {
+                    id: "gray",
+                    title: "Light Gray",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/8b3d38c0819547faa83f7b7aca80bd76/info/thumbnail/ago_downloaded.png",
+                    baseLayer: new TileLayer({
+                        url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"
+                    })
+                },
+                {
+                    id: "dark-gray",
+                    title: "Dark Gray",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/ed712cb1d29a4d9a8c7d48e4eafa0d0e/info/thumbnail/ago_downloaded.png",
+                    baseLayer: new TileLayer({
+                        url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer"
+                    })
+                }
+            ];
+            
+            const galleryContainer = document.getElementById("basemap-gallery");
+            
+            basemaps.forEach(basemap => {
+                const thumbnail = document.createElement("div");
+                thumbnail.className = "basemap-thumbnail";
+                thumbnail.dataset.basemapId = basemap.id;
+                
+                const img = document.createElement("img");
+                img.className = "basemap-image";
+                img.src = basemap.thumbnailUrl;
+                img.alt = basemap.title;
+                
+                const label = document.createElement("div");
+                label.className = "basemap-label";
+                label.textContent = basemap.title;
+                
+                thumbnail.appendChild(img);
+                thumbnail.appendChild(label);
+                
+                thumbnail.addEventListener("click", () => {
+                    // Remove selected class from all thumbnails
+                    document.querySelectorAll(".basemap-thumbnail").forEach(el => {
+                        el.classList.remove("selected");
+                    });
+                    
+                    // Add selected class to clicked thumbnail
+                    thumbnail.classList.add("selected");
+                    
+                    // Change the basemap
+                    const newBasemap = new Basemap({
+                        baseLayers: [basemap.baseLayer],
+                        title: basemap.title,
+                        id: basemap.id
+                    });
+                    
+                    arcgisMap.map.basemap = newBasemap;
+                });
+                
+                galleryContainer.appendChild(thumbnail);
+            });
+            
+            // Select the current basemap
+            const currentBasemapId = arcgisMap.map.basemap.id;
+            if (currentBasemapId) {
+                const currentThumbnail = document.querySelector(`.basemap-thumbnail[data-basemap-id="${currentBasemapId}"]`);
+                if (currentThumbnail) {
+                    currentThumbnail.classList.add("selected");
+                }
+            } else if (galleryContainer.firstChild) {
+                // Fallback: select the first basemap if no current basemap is detected
+                galleryContainer.firstChild.classList.add("selected");
+            }
+        });
+    });
+</script>
