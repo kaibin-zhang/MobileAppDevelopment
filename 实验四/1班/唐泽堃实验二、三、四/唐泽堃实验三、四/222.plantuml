@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+
+!define HUAWEI_BLUE #007DFF
+!define HUAWEI_GRAY #4D4D4D
+
+skinparam backgroundColor #F0F8FF
+skinparam actorStyle awesome
+skinparam ActorBorderColor HUAWEI_BLUE
+skinparam UseCaseBorderColor HUAWEI_GRAY
+skinparam ArrowColor HUAWEI_BLUE
+
+actor "客户" as Customer <<Person>> HUAWEI_BLUE
+actor "银行管理员" as Admin <<Role>> HUAWEI_GRAY
+
+package "客户服务" {
+  usecase (转账) as UC1
+  usecase (查询余额) as UC2
+  usecase (修改个人信息) as UC3
+}
+
+package "管理模块" {
+  usecase (管理账户) as UC4
+  usecase (生成报表) as UC5
+}
+
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Admin --> UC4
+Admin --> UC5
+
+UC1 ..> (登录验证) : <<include>>
+UC5 ..> (权限审批) : <<include>>
+UC3 .right.> (指纹验证) : <<extend>>
+
+note left of UC1
+  【安全约束】
+  • 单笔限额:50,000元
+  • 日累计限额:200,000元
+  • 需短信验证[4](@ref)
+end note
+
+@enduml
